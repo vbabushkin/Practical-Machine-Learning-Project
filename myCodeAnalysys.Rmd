@@ -1,0 +1,230 @@
+---
+title: "Description and Analysis of Prediction Models"
+author: "Vahan Babushkin"
+date: "Saturday, August 23, 2014"
+output: html_document
+---
+Assignment
+------------
+
+The project aims to analyse the input from different devices, placed on 6 participants' bodies, who were asked to perform one set of 10 repetitions in order to evaluate the way they perform exercises. 
+Participants' performance  is classified in 5 categories: "A","B","C","D","E", stored in the classe variable. 
+
+- Class A-- participants, following the specification, 
+- Class B -- participants, throwing the elbows to the front , 
+- Class C -- lifting the dumbbell only halfway, 
+- Class D -- lowering the dumbbell only halfway,
+- Class E --throwing the hips to the front (Class E).
+
+Read more: http://groupware.les.inf.puc-rio.br/har#weight_lifting_exercises#ixzz3BCucY9Vw
+
+Data Preprocessing
+-------------------
+The columns, containing more than 95% of NAs and missing values were excluded from consideration. The data in [pml-training.csv](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv) had bin split in proportion of 60/40 to form the training and testing sets. Data from [pml-testing.csv](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv) has been preprocessed the same way and used for submission of predictions.
+
+Feature Selection
+--------------------
+To determine the trends, the hystogram of features for each category were plotted. The features which hystograms are clearly separated were selected (e.g. see the figure below)
+
+```{r, echo=FALSE, warning =FALSE, message=FALSE}
+library(ggplot2)
+library(caret)
+library(kernlab)
+setwd("C:\\Users\\Wild\\Desktop\\R Programming Course\\Machine Learning\\project1\\code")
+data<-read.csv("C:\\Users\\Wild\\Desktop\\R Programming Course\\Machine Learning\\project1\\data\\pml-training.csv")
+
+
+
+
+inTrain<-createDataPartition(y=data$classe, p=0.60, list=FALSE)
+training<-data[inTrain,]
+testing<-data[-inTrain,]
+
+#taken from http://mlarocca.github.io/07-23-2014/analysis.html since I found it is a great idea to refine data
+treshold <- dim(training)[1] * 0.95
+#Remove columns with more than 95% of NA or "" values
+goodColumns <- !apply(training, 2, function(x) sum(is.na(x)) > treshold  || sum(x=="") > treshold)
+#end of taken part
+
+training <- training[, goodColumns]
+
+p<-ggplot(training, aes(training$pitch_forearm, fill = classe)) + geom_histogram(alpha = 0.5, aes(y = ..count..), position = 'identity',binwidth = 5)
+p<-p+xlab("pitch_forearm") + ylab("Count")
+print(p)
+```
+
+Also, features have been plotted against each other to select more informative ones. For example, we can see clear separation between different categories of roll_belt and pitch_belt features:
+
+```{r, echo=FALSE, warning =FALSE, message=FALSE}
+library(ggplot2)
+library(caret)
+library(kernlab)
+setwd("C:\\Users\\Wild\\Desktop\\R Programming Course\\Machine Learning\\project1\\code")
+data<-read.csv("C:\\Users\\Wild\\Desktop\\R Programming Course\\Machine Learning\\project1\\data\\pml-training.csv")
+
+
+
+
+inTrain<-createDataPartition(y=data$classe, p=0.60, list=FALSE)
+training<-data[inTrain,]
+testing<-data[-inTrain,]
+
+#taken from http://mlarocca.github.io/07-23-2014/analysis.html since I found it is a great idea to refine data
+treshold <- dim(training)[1] * 0.95
+#Remove columns with more than 95% of NA or "" values
+goodColumns <- !apply(training, 2, function(x) sum(is.na(x)) > treshold  || sum(x=="") > treshold)
+#end of taken part
+
+training <- training[, goodColumns]
+
+
+name2="roll_belt"
+name1="pitch_belt"
+strHead<-paste("Features ", name1, " and ", name2," plotted against each other")
+p1 <- 
+  ggplot(training, aes(x=training[,name1], y=training[,name2], colour=classe)) +
+  geom_point(alpha=.3) +
+  ggtitle(strHead)
+p1<-p1+xlab(name1) + ylab(name2)
+print(p1)
+```
+
+
+Finally, feature plot of values of different pairs of features has also been considered, e.g:
+
+
+```{r, echo=FALSE, warning =FALSE, message=FALSE}
+library(ggplot2)
+library(caret)
+library(kernlab)
+setwd("C:\\Users\\Wild\\Desktop\\R Programming Course\\Machine Learning\\project1\\code")
+data<-read.csv("C:\\Users\\Wild\\Desktop\\R Programming Course\\Machine Learning\\project1\\data\\pml-training.csv")
+
+
+
+
+inTrain<-createDataPartition(y=data$classe, p=0.60, list=FALSE)
+training<-data[inTrain,]
+testing<-data[-inTrain,]
+
+#taken from http://mlarocca.github.io/07-23-2014/analysis.html since I found it is a great idea to refine data
+treshold <- dim(training)[1] * 0.95
+#Remove columns with more than 95% of NA or "" values
+goodColumns <- !apply(training, 2, function(x) sum(is.na(x)) > treshold  || sum(x=="") > treshold)
+#end of taken part
+
+training <- training[, goodColumns]
+
+plt<-featurePlot(x=training[,c("accel_arm_x","accel_arm_y","accel_arm_z")], y=training[,c("accel_belt_x","accel_belt_y","accel_belt_z")],plot="pairs")
+print(plt)
+```
+
+
+The following colums have been selected as quite reliable features:
+
+- accel_arm_x,
+- accel_arm_y,
+- accel_arm_z,
+- accel_belt_z,
+- accel_dumbbell_x,
+- accel_dumbbell_y,
+- accel_dumbbell_z,
+- accel_forearm_x,
+- accel_forearm_y,
+- accel_forearm_z,
+- magnet_forearm_x,
+- magnet_forearm_y,
+- magnet_forearm_z,
+- pitch_belt,
+- pitch_dumbbell,
+- pitch_forearm,
+- roll_arm,
+- roll_belt,
+- roll_dumbbell,
+- roll_forearm,
+- yaw_arm,
+- yaw_belt,
+- yaw_dumbbell,
+- yaw_forearm
+
+Models Used
+---------------
+Two models have been used: Linear Discriminant Analysis and a Gradiend Boosting Method. Both were tested on remaining 40% of training data. The linear classifier demonstrated poor performance with prediction accuracy of 50%, mostly, due to overfitting. It was able to correctly classify only 11 out of 20 instances of testing data ([pml-testing.csv](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv)). 
+ 
+```
+Confusion Matrix and Statistics
+
+          Reference
+Prediction    A    B    C    D    E
+         A 1573  342  357  130  196
+         B   89  593  102   58  324
+         C  213  265  689   94  236
+         D  266  128  115  829  195
+         E   91  190  105  175  491
+
+Overall Statistics
+                                         
+               Accuracy : 0.5321         
+                 95% CI : (0.521, 0.5432)
+    No Information Rate : 0.2845         
+    P-Value [Acc > NIR] : < 2.2e-16      
+                                         
+                  Kappa : 0.4056         
+ Mcnemar's Test P-Value : < 2.2e-16      
+
+Statistics by Class:
+
+                     Class: A Class: B Class: C Class: D Class: E
+Sensitivity            0.7047  0.39065  0.50365   0.6446  0.34050
+Specificity            0.8174  0.90945  0.87527   0.8927  0.91240
+Pos Pred Value         0.6055  0.50858  0.46025   0.5408  0.46673
+Neg Pred Value         0.8744  0.86153  0.89305   0.9276  0.86002
+Prevalence             0.2845  0.19347  0.17436   0.1639  0.18379
+Detection Rate         0.2005  0.07558  0.08782   0.1057  0.06258
+Detection Prevalence   0.3311  0.14861  0.19080   0.1954  0.13408
+Balanced Accuracy      0.7611  0.65005  0.68946   0.7687  0.62645
+
+```
+
+However, the boosting clasifier was able to achieve 94% accuracy. The training with booting predictor required more time to produce classification, and it was able to correctly classify all 20 instances of testing data ([pml-testing.csv](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv)). 
+
+```
+Confusion Matrix and Statistics
+
+          Reference
+Prediction    A    B    C    D    E
+         A 2185   57    4    9    7
+         B   21 1392   74   13   28
+         C   15   56 1261   55   19
+         D   10    6   27 1209   17
+         E    1    7    2    0 1371
+
+Overall Statistics
+                                          
+               Accuracy : 0.9454          
+                 95% CI : (0.9402, 0.9504)
+    No Information Rate : 0.2845          
+    P-Value [Acc > NIR] : < 2.2e-16       
+                                          
+                  Kappa : 0.931           
+ Mcnemar's Test P-Value : 4.102e-14       
+
+Statistics by Class:
+
+                     Class: A Class: B Class: C Class: D Class: E
+Sensitivity            0.9789   0.9170   0.9218   0.9401   0.9508
+Specificity            0.9863   0.9785   0.9776   0.9909   0.9984
+Pos Pred Value         0.9660   0.9110   0.8969   0.9527   0.9928
+Neg Pred Value         0.9916   0.9801   0.9834   0.9883   0.9890
+Prevalence             0.2845   0.1935   0.1744   0.1639   0.1838
+Detection Rate         0.2785   0.1774   0.1607   0.1541   0.1747
+Detection Prevalence   0.2883   0.1947   0.1792   0.1617   0.1760
+Balanced Accuracy      0.9826   0.9478   0.9497   0.9655   0.9746
+```
+References
+--------------------------------
+Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th International Conference in Cooperation with SIGCHI (Augmented Human '13) . Stuttgart, Germany: ACM SIGCHI, 2013.
+
+Read more: http://groupware.les.inf.puc-rio.br/har#weight_lifting_exercises
+
+http://mlarocca.github.io/07-23-2014/analysis.html

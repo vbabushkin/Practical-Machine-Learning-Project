@@ -30,8 +30,8 @@ To determine the trends, the hystogram of features for each category were plotte
 library(ggplot2)
 library(caret)
 library(kernlab)
-setwd("C:\\Users\\Wild\\Desktop\\R Programming Course\\Machine Learning\\project1\\code")
-data<-read.csv("C:\\Users\\Wild\\Desktop\\R Programming Course\\Machine Learning\\project1\\data\\pml-training.csv")
+setwd("C:\\Users\\Wild\\Desktop\\R_ProgrammingCourse\\MachineLearning\\Practical-Machine-Learning-Project\\code")
+data<-read.csv("C:\\Users\\Wild\\Desktop\\R_ProgrammingCourse\\MachineLearning\\Practical-Machine-Learning-Project\\data\\pml-training.csv")
 
 
 
@@ -53,14 +53,14 @@ p<-p+xlab("pitch_forearm") + ylab("Count")
 print(p)
 ```
 
-Also, features have been plotted against each other to select more informative ones. For example, we can see clear separation between different categories of roll_belt and pitch_belt features:
+Also, features have been plotted against each other to see the relationship betwen them. For example, we can see some linear correlation between different categories of yaw_dumbbell and accel_dumbbell_z features:
 
 ```{r, echo=FALSE, warning =FALSE, message=FALSE}
 library(ggplot2)
 library(caret)
 library(kernlab)
-setwd("C:\\Users\\Wild\\Desktop\\R Programming Course\\Machine Learning\\project1\\code")
-data<-read.csv("C:\\Users\\Wild\\Desktop\\R Programming Course\\Machine Learning\\project1\\data\\pml-training.csv")
+setwd("C:\\Users\\Wild\\Desktop\\R_ProgrammingCourse\\MachineLearning\\Practical-Machine-Learning-Project\\code")
+data<-read.csv("C:\\Users\\Wild\\Desktop\\R_ProgrammingCourse\\MachineLearning\\Practical-Machine-Learning-Project\\data\\pml-training.csv")
 
 
 
@@ -78,8 +78,8 @@ goodColumns <- !apply(training, 2, function(x) sum(is.na(x)) > treshold  || sum(
 training <- training[, goodColumns]
 
 
-name2="roll_belt"
-name1="pitch_belt"
+name2="yaw_dumbbell"
+name1="accel_dumbbell_z"
 strHead<-paste("Features ", name1, " and ", name2," plotted against each other")
 p1 <- 
   ggplot(training, aes(x=training[,name1], y=training[,name2], colour=classe)) +
@@ -90,15 +90,15 @@ print(p1)
 ```
 
 
-Finally, feature plot of values of different pairs of features has also been considered, e.g:
+For the same purpose a scatter plot of different pairs of features can also been considered, e.g, we can note a linear correlation between accel_arm_y and accel_arm_z variables:
 
 
 ```{r, echo=FALSE, warning =FALSE, message=FALSE}
 library(ggplot2)
 library(caret)
 library(kernlab)
-setwd("C:\\Users\\Wild\\Desktop\\R Programming Course\\Machine Learning\\project1\\code")
-data<-read.csv("C:\\Users\\Wild\\Desktop\\R Programming Course\\Machine Learning\\project1\\data\\pml-training.csv")
+setwd("C:\\Users\\Wild\\Desktop\\R_ProgrammingCourse\\MachineLearning\\Practical-Machine-Learning-Project\\code")
+data<-read.csv("C:\\Users\\Wild\\Desktop\\R_ProgrammingCourse\\MachineLearning\\Practical-Machine-Learning-Project\\data\\pml-training.csv")
 
 
 
@@ -115,7 +115,7 @@ goodColumns <- !apply(training, 2, function(x) sum(is.na(x)) > treshold  || sum(
 
 training <- training[, goodColumns]
 
-plt<-featurePlot(x=training[,c("accel_arm_x","accel_arm_y","accel_arm_z")], y=training[,c("accel_belt_x","accel_belt_y","accel_belt_z")],plot="pairs")
+plt<-featurePlot(x=training[,c("accel_arm_x","accel_arm_y","accel_arm_z")], y=training$classe,plot="pairs")
 print(plt)
 ```
 
@@ -186,7 +186,7 @@ Balanced Accuracy      0.7611  0.65005  0.68946   0.7687  0.62645
 
 ```
 
-However, the boosting clasifier was able to achieve 94% accuracy. The training with booting predictor required more time to produce classification, and it was able to correctly classify all 20 instances of testing data ([pml-testing.csv](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv)). 
+However, the boosting clasifier was able to achieve 94% accuracy. The training with boosting predictor required more time to produce classification, and it was able to correctly classify all 20 instances of testing data ([pml-testing.csv](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv)). 
 
 ```
 Confusion Matrix and Statistics

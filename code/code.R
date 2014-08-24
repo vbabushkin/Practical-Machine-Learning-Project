@@ -1,8 +1,9 @@
-setwd("C:\\Users\\Wild\\Desktop\\R Programming Course\\Machine Learning\\project1\\code")
+
 library(caret)
 library(kernlab)
 library(ggplot2)
-data<-read.csv("C:\\Users\\Wild\\Desktop\\R Programming Course\\Machine Learning\\project1\\data\\pml-training.csv")
+setwd("C:\\Users\\Wild\\Desktop\\R_ProgrammingCourse\\MachineLearning\\Practical-Machine-Learning-Project\\code")
+data<-read.csv("C:\\Users\\Wild\\Desktop\\R_ProgrammingCourse\\MachineLearning\\Practical-Machine-Learning-Project\\data\\pml-training.csv")
 
 
 
@@ -28,7 +29,7 @@ names = colnames(testing)
 names<-names[8:59]
 
 #generate graphs for each variable to select the best ones
-path="C:\\Users\\Wild\\Desktop\\R Programming Course\\Machine Learning\\project1\\materials\\features\\"
+path="C:\\Users\\Wild\\Desktop\\R_ProgrammingCourse\\MachineLearning\\Practical-Machine-Learning-Project\\materials\\features\\"
 for (name in names) {
   fn<-paste(path,name,".jpg", sep = "")
   p<-ggplot(training, aes(training[,name], fill = classe)) + geom_histogram(alpha = 0.5, aes(y = ..count..), position = 'identity',binwidth = 5)
@@ -36,7 +37,7 @@ for (name in names) {
   ggsave(filename=fn, plot=p,width=10, height=6)
 }
 
-path="C:\\Users\\Wild\\Desktop\\R Programming Course\\Machine Learning\\project1\\materials\\plottedTogether\\"
+path="C:\\Users\\Wild\\Desktop\\R_ProgrammingCourse\\MachineLearning\\Practical-Machine-Learning-Project\\materials\\plottedTogether\\"
 for (name1 in names){ 
   for (name2 in names){
     if(name1!=name2){
@@ -54,10 +55,11 @@ for (name1 in names){
 
 
 
-#plt<-featurePlot(x=training[,c("accel_arm_x","accel_arm_y","accel_arm_z")], y=training[,c("accel_belt_x","accel_belt_y","accel_belt_z")],plot="pairs")
-#png(filename="C:\\Users\\Wild\\Desktop\\R Programming Course\\Machine Learning\\project1\\materials\\features\\plot.png")
-#plot(plt)
-#dev.off()
+plt<-featurePlot(x=training[,c("accel_arm_x","accel_arm_y","accel_arm_z")], y=training$classe,plot="pairs")
+#print(plt)
+png(filename="C:\\Users\\Wild\\Desktop\\R_ProgrammingCourse\\MachineLearning\\Practical-Machine-Learning-Project\\materials\\features\\plot.png")
+plot(plt)
+dev.off()
 
 #selected features
 
